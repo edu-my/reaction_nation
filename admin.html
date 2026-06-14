@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Kimia SPM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0f14;
+  --surface: #151921;
+  --surface2: #1c2230;
+  --border: #2a3040;
+  --text: #e8ecf4;
+  --text2: #8892a8;
+  --accent: #f6ad55;
+  --accent2: #ed8936;
+  --accent-glow: rgba(246,173,85,0.12);
+  --success: #68d391;
+  --danger: #fc8181;
+  --purple: #b794f4;
+  --blue: #63b3ed;
+  --teal: #4fd1c5;
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(246,173,85,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(246,173,85,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* === HEADER === */
+.header {
+  text-align: center;
+  padding: 48px 20px 32px;
+}
+
+.header-badge {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  background: var(--accent-glow);
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.header p {
+  color: var(--text2);
+  font-size: 0.9rem;
+}
+
+/* === VIEWS === */
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.3s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === LOGIN === */
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  max-width: 400px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+.login-card .lock-icon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+.login-card h2 {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+input[type="password"],
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.btn-primary:hover {
+  background: var(--accent2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(246,173,85,0.25);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+  border-color: var(--text2);
+  color: var(--text);
+}
+
+.btn-danger {
+  background: rgba(252,129,129,0.1);
+  color: var(--danger);
+  border: 1px solid rgba(252,129,129,0.3);
+}
+
+.btn-danger:hover {
+  background: rgba(252,129,129,0.2);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+}
+
+/* === TABS === */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 28px;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text2);
+  border: none;
+  background: transparent;
+}
+
+.tab.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.tab:not(.active):hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+/* === SECTION CARD === */
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.section-card h3 {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.section-card .desc {
+  font-size: 0.78rem;
+  color: var(--text2);
+  margin-bottom: 16px;
+}
+
+/* === K1 ANSWER GRID === */
+.answer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+.answer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.answer-item .q-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text2);
+  min-width: 22px;
+}
+
+.answer-item .opts {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.answer-item .opts button {
+  flex: 1;
+  padding: 7px 0;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.answer-item .opts button:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.answer-item .opts button.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+/* === K2 QUESTION EDITOR === */
+.bahagian-block {
+  margin-bottom: 24px;
+}
+
+.bahagian-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bahagian-header h4 {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.bahagian-A .bahagian-header h4 { color: var(--teal); }
+.bahagian-B .bahagian-header h4 { color: var(--purple); }
+.bahagian-C .bahagian-header h4 { color: var(--accent); }
+
+.q-editor-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 80px 40px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(42,48,64,0.4);
+}
+
+.q-editor-row .q-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.q-editor-row input[type="text"] {
+  padding: 10px 12px;
+  font-size: 0.85rem;
+}
+
+.q-editor-row input[type="number"] {
+  padding: 10px;
+  font-size: 0.85rem;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+}
+
+.q-editor-row .remove-btn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.q-editor-row .remove-btn:hover {
+  background: rgba(252,129,129,0.1);
+}
+
+.add-q-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.add-q-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* === STATUS === */
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 20px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 100;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.status-bar.visible {
+  transform: translateY(0);
+}
+
+.status-bar.success {
+  background: rgba(104,211,145,0.15);
+  border-top: 1px solid var(--success);
+  color: var(--success);
+}
+
+.status-bar.error {
+  background: rgba(252,129,129,0.15);
+  border-top: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.status-bar.loading {
+  background: rgba(99,179,237,0.15);
+  border-top: 1px solid var(--blue);
+  color: var(--blue);
+}
+
+/* === SAVE BAR === */
+.save-bar {
+  position: sticky;
+  bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  z-index: 50;
+}
+
+/* === NUM QUESTIONS CONTROL === */
+.num-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.num-control label {
+  font-size: 0.85rem;
+  color: var(--text2);
+}
+
+.num-control input {
+  width: 80px;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 600px) {
+  .answer-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .q-editor-row {
+    grid-template-columns: 40px 1fr 65px 32px;
+    gap: 6px;
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.footer {
+  text-align: center;
+  padding: 40px;
+  color: var(--text2);
+  font-size: 0.72rem;
+  font-family: 'Space Mono', monospace;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- === HEADER === -->
+  <div class="header">
+    <div class="header-badge">Panel Guru</div>
+    <h1>Tetapan Peperiksaan</h1>
+    <p>Urus skema jawapan K1 dan struktur soalan K2</p>
+  </div>
+
+  <!-- ============ VIEW: LOGIN ============ -->
+  <div id="view-login" class="view active">
+    <div class="login-card">
+      <div class="lock-icon">🔒</div>
+      <h2>Masukkan Kata Laluan</h2>
+      <input type="password" id="password-input" placeholder="Kata laluan guru"
+        onkeydown="if(event.key==='Enter') doLogin()">
+      <button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="doLogin()">Masuk</button>
+      <div id="login-error" style="color:var(--danger);font-size:0.8rem;margin-top:10px;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ============ VIEW: ADMIN ============ -->
+  <div id="view-admin" class="view">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tab-k1', this)">Kertas 1 — Skema</button>
+      <button class="tab" onclick="switchTab('tab-k2', this)">Kertas 2 — Struktur</button>
+      <button class="tab" onclick="switchTab('tab-settings', this)">Tetapan</button>
+    </div>
+
+    <!-- === TAB: K1 ANSWER KEY === -->
+    <div id="tab-k1" class="tab-content active">
+      <div class="section-card">
+        <h3>Skema Jawapan Kertas 1</h3>
+        <p class="desc">Klik A / B / C / D untuk setiap soalan. Tukar bilangan soalan jika perlu.</p>
+
+        <div class="num-control">
+          <label>Bilangan soalan:</label>
+          <input type="number" id="k1-num-questions" value="40" min="1" max="100"
+            onchange="rebuildK1Grid(parseInt(this.value))">
+        </div>
+
+        <div class="answer-grid" id="k1-answer-grid"></div>
+      </div>
+    </div>
+
+    <!-- === TAB: K2 STRUCTURE === -->
+    <div id="tab-k2" class="tab-content">
+      <div class="section-card">
+        <h3>Struktur Kertas 2</h3>
+        <p class="desc">Tetapkan topik dan markah penuh bagi setiap soalan dalam Bahagian A, B dan C.</p>
+
+        <div id="k2-editor"></div>
+      </div>
+    </div>
+
+    <!-- === TAB: SETTINGS === -->
+    <div id="tab-settings" class="tab-content">
+      <div class="section-card">
+        <h3>Tukar Kata Laluan</h3>
+        <p class="desc">Kata laluan untuk akses halaman admin ini.</p>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <input type="password" id="new-password" placeholder="Kata laluan baru">
+          <button class="btn btn-outline btn-sm" onclick="changePassword()">Tukar</button>
+        </div>
+      </div>
+
+      <div class="section-card" style="margin-top:16px;">
+        <h3>Reset Data Pelajar</h3>
+        <p class="desc">Padam semua respons pelajar (K1 dan K2). Gunakan sebelum peperiksaan baru.</p>
+        <button class="btn btn-danger btn-sm" style="margin-top:12px;" onclick="confirmReset()">Padam Semua Respons</button>
+      </div>
+    </div>
+
+    <!-- SAVE BAR -->
+    <div class="save-bar">
+      <button class="btn btn-outline" onclick="loadConfig()">Batal / Muat Semula</button>
+      <button class="btn btn-primary" id="btn-save" onclick="saveConfig()">Simpan Perubahan</button>
+    </div>
+  </div>
+
+  <div class="footer">Panel Guru — Kimia SPM Analisis</div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="status-bar" class="status-bar"></div>
+
+<script>
+// =============================================
+// CONFIG — SAME URL AS index.html
+// =============================================
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+// =============================================
+// STATE
+// =============================================
+let k1Answers = [];
+let k2Structure = [
+  // Default structure
+  { bahagian: 'A', soalan: 1, topic: 'Seramik dan Kaca', max: 5 },
+  { bahagian: 'A', soalan: 2, topic: 'Pemanasan Zarah', max: 5 },
+  { bahagian: 'A', soalan: 3, topic: 'Isotop', max: 6 },
+  { bahagian: 'A', soalan: 4, topic: 'Formula Molekul dan Imperik', max: 7 },
+  { bahagian: 'A', soalan: 5, topic: 'Jadual Berkala Unsur (K1)', max: 8 },
+  { bahagian: 'A', soalan: 6, topic: 'Asid dan Garam', max: 9 },
+  { bahagian: 'A', soalan: 7, topic: 'Haba Tindakbalas', max: 10 },
+  { bahagian: 'A', soalan: 8, topic: 'Jadual Berkala Unsur (Kala)', max: 10 },
+  { bahagian: 'B', soalan: 9, topic: 'Kadar Tindakbalas', max: 20 },
+  { bahagian: 'B', soalan: 10, topic: 'Ikatan Kimia', max: 20 },
+  { bahagian: 'C', soalan: 11, topic: 'Haba Tindakbalas', max: 20 },
+];
+
+let sessionToken = '';
+
+// =============================================
+// LOGIN
+// =============================================
+function doLogin() {
+  const pw = document.getElementById('password-input').value;
+  const errEl = document.getElementById('login-error');
+
+  if (!pw) {
+    errEl.textContent = 'Sila masukkan kata laluan.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  showStatus('Mengesahkan...', 'loading');
+
+  fetch(`${APPS_SCRIPT_URL}?action=adminLogin&password=${encodeURIComponent(pw)}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        sessionToken = data.token;
+        hideStatus();
+        document.getElementById('view-login').classList.remove('active');
+        document.getElementById('view-admin').classList.add('active');
+        loadConfig();
+      } else {
+        errEl.textContent = data.error || 'Kata laluan salah.';
+        errEl.style.display = 'block';
+        hideStatus();
+      }
+    })
+    .catch(() => {
+      errEl.textContent = 'Ralat sambungan. Pastikan URL Apps Script betul.';
+      errEl.style.display = 'block';
+      hideStatus();
+    });
+}
+
+// =============================================
+// LOAD CONFIG FROM SHEET
+// =============================================
+function loadConfig() {
+  showStatus('Memuatkan konfigurasi...', 'loading');
+
+  fetch(`${APPS_SCRIPT_URL}?action=getConfig&token=${sessionToken}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.k1Answers && data.k1Answers.length > 0) {
+        k1Answers = data.k1Answers;
+      } else {
+        k1Answers = new Array(40).fill('');
+      }
+
+      if (data.k2Structure && data.k2Structure.length > 0) {
+        k2Structure = data.k2Structure;
+      }
+
+      document.getElementById('k1-num-questions').value = k1Answers.length;
+      rebuildK1Grid(k1Answers.length);
+      rebuildK2Editor();
+      showStatus('Konfigurasi dimuatkan.', 'success');
+      setTimeout(hideStatus, 2000);
+    })
+    .catch(() => {
+      // Use defaults
+      rebuildK1Grid(40);
+      rebuildK2Editor();
+      hideStatus();
+    });
+}
+
+// =============================================
+// SAVE CONFIG TO SHEET
+// =============================================
+function saveConfig() {
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
+  showStatus('Menyimpan perubahan...', 'loading');
+
+  // Collect K1 answers
+  const answers = [];
+  for (let i = 0; i < k1Answers.length; i++) {
+    answers.push(k1Answers[i] || '');
+  }
+
+  // Collect K2 structure from DOM
+  collectK2FromDOM();
+
+  const payload = {
+    action: 'saveConfig',
+    token: sessionToken,
+    k1Answers: answers,
+    k2Structure: k2Structure
+  };
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = 'Simpan Perubahan';
+
+      if (data.success) {
+        showStatus('Perubahan berjaya disimpan!', 'success');
+      } else {
+        showStatus('Ralat: ' + (data.error || 'Tidak dapat simpan.'), 'error');
+      }
+      setTimeout(hideStatus, 3000);
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = 'Simpan Perubahan';
+      showStatus('Ralat sambungan.', 'error');
+      setTimeout(hideStatus, 3000);
+    });
+}
+
+// =============================================
+// K1 ANSWER GRID
+// =============================================
+function rebuildK1Grid(numQ) {
+  // Resize array
+  if (k1Answers.length < numQ) {
+    while (k1Answers.length < numQ) k1Answers.push('');
+  } else {
+    k1Answers = k1Answers.slice(0, numQ);
+  }
+
+  const grid = document.getElementById('k1-answer-grid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < numQ; i++) {
+    const item = document.createElement('div');
+    item.className = 'answer-item';
+    item.innerHTML = `
+      <span class="q-label">${i + 1}.</span>
+      <div class="opts">
+        ${['A','B','C','D'].map(opt => {
+          const sel = k1Answers[i] === opt ? 'selected' : '';
+          return `<button class="${sel}" data-q="${i}" data-opt="${opt}" onclick="setK1Answer(this)">${opt}</button>`;
+        }).join('')}
+      </div>
+    `;
+    grid.appendChild(item);
+  }
+}
+
+function setK1Answer(btn) {
+  const q = parseInt(btn.dataset.q);
+  const opt = btn.dataset.opt;
+  k1Answers[q] = opt;
+
+  btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// =============================================
+// K2 STRUCTURE EDITOR
+// =============================================
+function rebuildK2Editor() {
+  const editor = document.getElementById('k2-editor');
+  editor.innerHTML = '';
+
+  const bahagians = ['A', 'B', 'C'];
+
+  bahagians.forEach(bah => {
+    const questions = k2Structure.filter(q => q.bahagian === bah);
+    const block = document.createElement('div');
+    block.className = `bahagian-block bahagian-${bah}`;
+    block.dataset.bahagian = bah;
+
+    block.innerHTML = `
+      <div class="bahagian-header">
+        <h4>Bahagian ${bah}</h4>
+      </div>
+      <div class="q-list" id="q-list-${bah}">
+        ${questions.map((q, idx) => questionRow(q, bah)).join('')}
+      </div>
+      <button class="add-q-btn" onclick="addQuestion('${bah}')">+ Tambah soalan</button>
+    `;
+
+    editor.appendChild(block);
+  });
+}
+
+function questionRow(q, bah) {
+  return `
+    <div class="q-editor-row" data-bahagian="${bah}">
+      <span class="q-num">S${q.soalan}</span>
+      <input type="text" value="${q.topic}" placeholder="Nama topik" class="topic-input">
+      <input type="number" value="${q.max}" min="1" max="100" class="max-input" placeholder="Maks">
+      <button class="remove-btn" onclick="removeQuestion(this)" title="Padam">&times;</button>
+    </div>
+  `;
+}
+
+function addQuestion(bahagian) {
+  // Find next soalan number
+  collectK2FromDOM();
+  const maxSoalan = k2Structure.length > 0
+    ? Math.max(...k2Structure.map(q => q.soalan))
+    : 0;
+
+  k2Structure.push({
+    bahagian: bahagian,
+    soalan: maxSoalan + 1,
+    topic: '',
+    max: bahagian === 'A' ? 5 : 20
+  });
+
+  rebuildK2Editor();
+}
+
+function removeQuestion(btn) {
+  const row = btn.closest('.q-editor-row');
+  row.remove();
+  collectK2FromDOM();
+  renumberQuestions();
+  rebuildK2Editor();
+}
+
+function collectK2FromDOM() {
+  const rows = document.querySelectorAll('.q-editor-row');
+  k2Structure = [];
+  let soalanNum = 1;
+
+  rows.forEach(row => {
+    const bahagian = row.dataset.bahagian;
+    const topic = row.querySelector('.topic-input').value.trim();
+    const max = parseInt(row.querySelector('.max-input').value) || 5;
+
+    k2Structure.push({
+      bahagian: bahagian,
+      soalan: soalanNum++,
+      topic: topic,
+      max: max
+    });
+  });
+}
+
+function renumberQuestions() {
+  k2Structure.forEach((q, i) => {
+    q.soalan = i + 1;
+  });
+}
+
+// =============================================
+// CHANGE PASSWORD
+// =============================================
+function changePassword() {
+  const newPw = document.getElementById('new-password').value;
+  if (!newPw || newPw.length < 4) {
+    showStatus('Kata laluan mesti sekurang-kurangnya 4 aksara.', 'error');
+    setTimeout(hideStatus, 3000);
+    return;
+  }
+
+  showStatus('Menukar kata laluan...', 'loading');
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      action: 'changePassword',
+      token: sessionToken,
+      newPassword: newPw
+    })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showStatus('Kata laluan berjaya ditukar.', 'success');
+        document.getElementById('new-password').value = '';
+      } else {
+        showStatus('Ralat: ' + (data.error || ''), 'error');
+      }
+      setTimeout(hideStatus, 3000);
+    })
+    .catch(() => {
+      showStatus('Ralat sambungan.', 'error');
+      setTimeout(hideStatus, 3000);
+    });
+}
+
+// =============================================
+// RESET DATA
+// =============================================
+function confirmReset() {
+  if (!confirm('AMARAN: Ini akan memadam SEMUA respons pelajar (K1 dan K2). Tindakan ini tidak boleh dibatalkan. Teruskan?')) {
+    return;
+  }
+
+  showStatus('Memadam data pelajar...', 'loading');
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      action: 'resetResponses',
+      token: sessionToken
+    })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showStatus('Semua respons pelajar telah dipadam.', 'success');
+      } else {
+        showStatus('Ralat: ' + (data.error || ''), 'error');
+      }
+      setTimeout(hideStatus, 3000);
+    })
+    .catch(() => {
+      showStatus('Ralat sambungan.', 'error');
+      setTimeout(hideStatus, 3000);
+    });
+}
+
+// =============================================
+// TABS
+// =============================================
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+// =============================================
+// STATUS BAR
+// =============================================
+function showStatus(msg, type) {
+  const bar = document.getElementById('status-bar');
+  bar.textContent = msg;
+  bar.className = `status-bar ${type} visible`;
+}
+
+function hideStatus() {
+  document.getElementById('status-bar').classList.remove('visible');
+}
+</script>
+</body>
+</html>

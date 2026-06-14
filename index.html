@@ -682,7 +682,7 @@ input:focus, select:focus {
       <input type="text" id="ic-k1" placeholder="cth: 080101-12-1234" maxlength="14">
     </div>
 
-    <div class="progress-count">Dijawab: <span id="k1-count">0</span> / 40</div>
+    <div class="progress-count">Dijawab: <span id="k1-count">0</span> / <span id="k1-total">40</span></div>
     <div class="mcq-grid" id="mcq-grid"></div>
 
     <div id="k1-status" class="status-msg"></div>
@@ -750,9 +750,15 @@ const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 // =============================================
 // DATA
 // =============================================
-const K1_ANSWERS = ['C','D','B','C','A','A','D','A','B','B','A','C','D','A','A','A','C','D','C','D','A','D','B','D','B','D','C','C','C','C','A','B','D','B','D','C','A','B','D','C'];
+// These get loaded from Google Sheet via loadConfig()
+let K1_ANSWERS = [];
+let K2_STRUCTURE = [];
+let K2_TOTAL = 0;
+let configLoaded = false;
 
-const K2_STRUCTURE = [
+// Default fallbacks (used in demo mode or if config fetch fails)
+const DEFAULT_K1 = ['C','D','B','C','A','A','D','A','B','B','A','C','D','A','A','A','C','D','C','D','A','D','B','D','B','D','C','C','C','C','A','B','D','B','D','C','A','B','D','C'];
+const DEFAULT_K2 = [
   { bahagian:'A', soalan:1, topic:'Seramik dan Kaca', max:5 },
   { bahagian:'A', soalan:2, topic:'Pemanasan Zarah', max:5 },
   { bahagian:'A', soalan:3, topic:'Isotop', max:6 },
@@ -766,7 +772,36 @@ const K2_STRUCTURE = [
   { bahagian:'C', soalan:11, topic:'Haba Tindakbalas', max:20 },
 ];
 
-const K2_TOTAL = K2_STRUCTURE.reduce((s,q) => s + q.max, 0);
+async function loadConfig() {
+  try {
+    const resp = await fetch(`${APPS_SCRIPT_URL}?action=getConfig`);
+    const data = await resp.json();
+
+    if (data.k1Answers && data.k1Answers.length > 0) {
+      K1_ANSWERS = data.k1Answers;
+    } else {
+      K1_ANSWERS = DEFAULT_K1;
+    }
+
+    if (data.k2Structure && data.k2Structure.length > 0) {
+      K2_STRUCTURE = data.k2Structure;
+    } else {
+      K2_STRUCTURE = DEFAULT_K2;
+    }
+
+    K2_TOTAL = K2_STRUCTURE.reduce((s, q) => s + q.max, 0);
+    configLoaded = true;
+  } catch (err) {
+    console.warn('Could not load config, using defaults.');
+    K1_ANSWERS = DEFAULT_K1;
+    K2_STRUCTURE = DEFAULT_K2;
+    K2_TOTAL = K2_STRUCTURE.reduce((s, q) => s + q.max, 0);
+  }
+
+  // Rebuild forms with loaded config
+  buildK1Grid();
+  buildK2Form();
+}
 
 // Student answers state
 let k1Answers = new Array(40).fill(null);
@@ -786,7 +821,13 @@ function showView(id) {
 // =============================================
 function buildK1Grid() {
   const grid = document.getElementById('mcq-grid');
-  for (let i = 0; i < 40; i++) {
+  grid.innerHTML = '';
+  const numQ = K1_ANSWERS.length || 40;
+  k1Answers = new Array(numQ).fill(null);
+  document.getElementById('k1-count').textContent = '0';
+  document.getElementById('k1-total').textContent = numQ;
+
+  for (let i = 0; i < numQ; i++) {
     const item = document.createElement('div');
     item.className = 'mcq-item';
     item.innerHTML = `
@@ -1011,9 +1052,11 @@ function renderResults(data) {
   let overallGrade = '-';
 
   if (hasK1 && hasK2) {
-    overallPct = Math.round(((data.k1.score / 40 * 100) + (data.k2.total / K2_TOTAL * 100)) / 2);
+    const k1Total = data.k1.details ? data.k1.details.length : K1_ANSWERS.length;
+    overallPct = Math.round(((data.k1.score / k1Total * 100) + (data.k2.total / K2_TOTAL * 100)) / 2);
   } else if (hasK1) {
-    overallPct = Math.round(data.k1.score / 40 * 100);
+    const k1Total = data.k1.details ? data.k1.details.length : K1_ANSWERS.length;
+    overallPct = Math.round(data.k1.score / k1Total * 100);
   } else if (hasK2) {
     overallPct = Math.round(data.k2.total / K2_TOTAL * 100);
   }
@@ -1037,11 +1080,12 @@ function renderResults(data) {
   html += '<div class="analytics-grid">';
 
   if (hasK1) {
+    const k1Total = data.k1.details ? data.k1.details.length : K1_ANSWERS.length;
     html += `
       <div class="analytics-card">
         <h4>Kertas 1 — Objektif</h4>
-        <div style="font-family:'Space Mono';font-size:2rem;color:var(--accent);font-weight:700;">${data.k1.score} / 40</div>
-        <div style="color:var(--text2);font-size:0.8rem;margin-top:4px;">${Math.round(data.k1.score/40*100)}% betul</div>
+        <div style="font-family:'Space Mono';font-size:2rem;color:var(--accent);font-weight:700;">${data.k1.score} / ${k1Total}</div>
+        <div style="color:var(--text2);font-size:0.8rem;margin-top:4px;">${Math.round(data.k1.score/k1Total*100)}% betul</div>
       </div>
     `;
   }
@@ -1103,12 +1147,13 @@ function renderResults(data) {
 
     // Topic analysis for K2
     if (data.classStats.k2TopicAvg) {
+      const k2Struct = data.k2Structure || K2_STRUCTURE;
       html += `<div class="analytics-card full-card">
         <h4>Analisis Topik — Kertas 2</h4>
         <table class="topic-table">
           <tr><th>Soalan</th><th>Topik</th><th>Anda</th><th>Purata Kelas</th><th>Prestasi</th></tr>`;
 
-      K2_STRUCTURE.forEach((q, i) => {
+      k2Struct.forEach((q, i) => {
         const studentMark = hasK2 ? (data.k2.marks[i] || 0) : '-';
         const classAvg = data.classStats.k2TopicAvg[i] !== undefined ? data.classStats.k2TopicAvg[i].toFixed(1) : '-';
         const pct = hasK2 && q.max > 0 ? (data.k2.marks[i] || 0) / q.max : 0;
@@ -1226,10 +1271,16 @@ fetchResults = async function() {
 // =============================================
 // INIT
 // =============================================
+// Build with defaults first, then loadConfig will rebuild with live data
+K1_ANSWERS = DEFAULT_K1;
+K2_STRUCTURE = DEFAULT_K2;
+K2_TOTAL = K2_STRUCTURE.reduce((s, q) => s + q.max, 0);
 buildK1Grid();
 buildK2Form();
 
-if (isDemoMode()) {
+if (!isDemoMode()) {
+  loadConfig();
+} else {
   console.log('Running in DEMO mode — configure APPS_SCRIPT_URL for production.');
 }
 </script>
