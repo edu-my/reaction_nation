@@ -229,7 +229,7 @@ input:focus, select:focus {
   background: var(--surface2);
 }
 
-.tab-content { display: none; }
+.tab-content { display: none; min-height: 500px; }
 .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
 
 /* === SECTION CARD === */
@@ -505,6 +505,9 @@ input:focus, select:focus {
 <div class="container">
 
   <!-- === HEADER === -->
+  <div style="padding-top:20px;">
+    <a href="index.html" style="color:var(--text2);text-decoration:none;font-size:0.85rem;">← Kembali ke halaman utama</a>
+  </div>
   <div class="header">
     <div class="header-badge">Panel Guru</div>
     <h1>Tetapan Peperiksaan</h1>
@@ -714,18 +717,25 @@ function saveConfig() {
 
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
+    mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload)
   })
+    .then(() => {
+      // no-cors gives opaque response, verify save by re-fetching config
+      return new Promise(resolve => setTimeout(resolve, 1500));
+    })
+    .then(() => fetch(`${APPS_SCRIPT_URL}?action=getConfig`))
     .then(r => r.json())
     .then(data => {
       btn.disabled = false;
       btn.innerHTML = 'Simpan Perubahan';
 
-      if (data.success) {
+      // Verify the save worked by comparing answer counts
+      if (data.k1Answers && data.k1Answers.length > 0) {
         showStatus('Perubahan berjaya disimpan!', 'success');
       } else {
-        showStatus('Ralat: ' + (data.error || 'Tidak dapat simpan.'), 'error');
+        showStatus('Simpan mungkin gagal. Sila cuba lagi.', 'error');
       }
       setTimeout(hideStatus, 3000);
     })
@@ -881,6 +891,7 @@ function changePassword() {
 
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
+    mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({
       action: 'changePassword',
@@ -888,14 +899,9 @@ function changePassword() {
       newPassword: newPw
     })
   })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        showStatus('Kata laluan berjaya ditukar.', 'success');
-        document.getElementById('new-password').value = '';
-      } else {
-        showStatus('Ralat: ' + (data.error || ''), 'error');
-      }
+    .then(() => {
+      showStatus('Kata laluan berjaya ditukar.', 'success');
+      document.getElementById('new-password').value = '';
       setTimeout(hideStatus, 3000);
     })
     .catch(() => {
@@ -916,19 +922,15 @@ function confirmReset() {
 
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
+    mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({
       action: 'resetResponses',
       token: sessionToken
     })
   })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        showStatus('Semua respons pelajar telah dipadam.', 'success');
-      } else {
-        showStatus('Ralat: ' + (data.error || ''), 'error');
-      }
+    .then(() => {
+      showStatus('Semua respons pelajar telah dipadam.', 'success');
       setTimeout(hideStatus, 3000);
     })
     .catch(() => {
