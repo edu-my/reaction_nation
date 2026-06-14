@@ -637,13 +637,17 @@ input:focus, select:focus {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
+  font-size: 0.75rem;
+  font-family: 'Space Mono', monospace;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
   transition: all 0.2s;
 }
-.theme-toggle:hover { border-color: var(--accent); }
+.theme-toggle:hover { border-color: var(--accent); color: var(--text); }
 
 /* === LIGHT THEME === */
 body.light {
@@ -694,7 +698,7 @@ body.light .glow-orb { opacity: 0.3; }
 </head>
 <body>
 <div class="glow-orb"></div>
-<button class="theme-toggle" onclick="toggleTheme()" title="Tukar tema">🌙</button>
+<button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
 <div class="container">
 
   <!-- === HEADER === -->
@@ -1374,10 +1378,11 @@ function fillRandom() {
 // =============================================
 function toggleTheme() {
   const body = document.body;
-  const btn = document.querySelector('.theme-toggle');
+  const btn = document.getElementById('theme-btn');
   body.classList.toggle('light');
-  btn.textContent = body.classList.contains('light') ? '🌑' : '🌙';
-  localStorage.setItem('theme', body.classList.contains('light') ? 'light' : 'dark');
+  const isLight = body.classList.contains('light');
+  btn.textContent = isLight ? '☾ Dark' : '☀ Light';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
 }
 
 // Restore saved theme
@@ -1385,8 +1390,8 @@ function toggleTheme() {
   const saved = localStorage.getItem('theme');
   if (saved === 'light') {
     document.body.classList.add('light');
-    const btn = document.querySelector('.theme-toggle');
-    if (btn) btn.textContent = '🌑';
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = '☾ Dark';
   }
 })();
 
