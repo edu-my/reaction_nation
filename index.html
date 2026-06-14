@@ -659,7 +659,7 @@ input:focus, select:focus {
       <a onclick="showView('view-check')">Sudah hantar? → Semak keputusan saya</a>
     </div>
 
-    <div class="setup-banner">
+    <div class="setup-banner" id="setup-banner">
       <h3>⚠ Persediaan Guru (Setup)</h3>
       <p>Untuk sistem ini berfungsi, anda perlu menyediakan Google Apps Script sebagai backend API. Lihat fail <code>apps-script.js</code> yang disertakan.</p>
       <ol>
@@ -677,9 +677,9 @@ input:focus, select:focus {
     <p style="color:var(--text2);font-size:0.85rem;margin-bottom:16px;">Pilih jawapan untuk setiap 40 soalan.</p>
 
     <div class="ic-section">
-      <label>No. Kad Pengenalan (IC)</label>
-      <div class="hint">Digunakan sebagai pengenal pasti unik anda</div>
-      <input type="text" id="ic-k1" placeholder="cth: 080101-12-1234" maxlength="14">
+      <label>Nama Penuh</label>
+      <div class="hint">Masukkan nama penuh anda seperti dalam senarai kelas</div>
+      <input type="text" id="ic-k1" placeholder="cth: ALI BIN ABU" maxlength="100">
     </div>
 
     <div class="progress-count">Dijawab: <span id="k1-count">0</span> / <span id="k1-total">40</span></div>
@@ -699,9 +699,9 @@ input:focus, select:focus {
     <p style="color:var(--text2);font-size:0.85rem;margin-bottom:16px;">Masukkan markah yang diperoleh bagi setiap soalan.</p>
 
     <div class="ic-section">
-      <label>No. Kad Pengenalan (IC)</label>
-      <div class="hint">Gunakan IC yang sama seperti Kertas 1</div>
-      <input type="text" id="ic-k2" placeholder="cth: 080101-12-1234" maxlength="14">
+      <label>Nama Penuh</label>
+      <div class="hint">Gunakan nama yang sama seperti Kertas 1</div>
+      <input type="text" id="ic-k2" placeholder="cth: ALI BIN ABU" maxlength="100">
     </div>
 
     <div class="k2-sections" id="k2-form"></div>
@@ -717,11 +717,11 @@ input:focus, select:focus {
   <!-- ============ VIEW: CHECK RESULTS ============ -->
   <div id="view-check" class="view">
     <h2 style="margin-bottom:4px;">Semak Keputusan</h2>
-    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:16px;">Masukkan IC anda untuk melihat analisis.</p>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:16px;">Masukkan nama anda untuk melihat analisis.</p>
 
     <div class="ic-section">
-      <label>No. Kad Pengenalan (IC)</label>
-      <input type="text" id="ic-check" placeholder="cth: 080101-12-1234" maxlength="14">
+      <label>Nama Penuh</label>
+      <input type="text" id="ic-check" placeholder="cth: ALI BIN ABU" maxlength="100">
       <button class="btn btn-primary" style="margin-top:12px;width:100%;" onclick="fetchResults()">Cari Keputusan</button>
     </div>
 
@@ -738,7 +738,7 @@ input:focus, select:focus {
     </div>
   </div>
 
-  <div class="footer">Kimia SPM Analisis · Dibina untuk guru & pelajar<br><a href="admin.html" style="color:var(--text2);text-decoration:none;font-size:0.65rem;opacity:0.5;">Panel Guru</a></div>
+  <div class="footer">Kimia SPM Analisis · Dibina untuk guru & pelajar<br><a href="admin.html" style="color:var(--accent);text-decoration:none;font-size:0.75rem;border-bottom:1px dashed var(--accent);">Panel Guru →</a></div>
 </div>
 
 <script>
@@ -896,13 +896,13 @@ function validateMark(input, max, soalan) {
 // SUBMIT K1
 // =============================================
 async function submitK1() {
-  const ic = document.getElementById('ic-k1').value.trim();
+  const ic = document.getElementById('ic-k1').value.trim().toUpperCase();
   const status = document.getElementById('k1-status');
   const btn = document.getElementById('btn-submit-k1');
 
-  if (!ic || ic.length < 6) {
+  if (!ic || ic.length < 3) {
     status.className = 'status-msg error';
-    status.textContent = 'Sila masukkan No. IC yang sah.';
+    status.textContent = 'Sila masukkan nama penuh anda.';
     return;
   }
 
@@ -938,6 +938,7 @@ async function submitK1() {
     // Auto show results after short delay
     setTimeout(() => {
       document.getElementById('ic-check').value = ic;
+      resetK1Form();
       fetchResults();
     }, 1500);
 
@@ -953,13 +954,13 @@ async function submitK1() {
 // SUBMIT K2
 // =============================================
 async function submitK2() {
-  const ic = document.getElementById('ic-k2').value.trim();
+  const ic = document.getElementById('ic-k2').value.trim().toUpperCase();
   const status = document.getElementById('k2-status');
   const btn = document.getElementById('btn-submit-k2');
 
-  if (!ic || ic.length < 6) {
+  if (!ic || ic.length < 3) {
     status.className = 'status-msg error';
-    status.textContent = 'Sila masukkan No. IC yang sah.';
+    status.textContent = 'Sila masukkan nama penuh anda.';
     return;
   }
 
@@ -993,6 +994,7 @@ async function submitK2() {
 
     setTimeout(() => {
       document.getElementById('ic-check').value = ic;
+      resetK2Form();
       fetchResults();
     }, 1500);
 
@@ -1008,12 +1010,12 @@ async function submitK2() {
 // FETCH RESULTS
 // =============================================
 async function fetchResults() {
-  const ic = document.getElementById('ic-check').value.trim();
+  const ic = document.getElementById('ic-check').value.trim().toUpperCase();
   const status = document.getElementById('check-status');
 
-  if (!ic || ic.length < 6) {
+  if (!ic || ic.length < 3) {
     status.className = 'status-msg error';
-    status.textContent = 'Sila masukkan No. IC yang sah.';
+    status.textContent = 'Sila masukkan nama penuh anda.';
     return;
   }
 
@@ -1230,9 +1232,9 @@ fetchResults = async function() {
   if (isDemoMode()) {
     // Generate demo data
     const ic = document.getElementById('ic-check').value.trim();
-    if (!ic || ic.length < 6) {
+    if (!ic || ic.length < 3) {
       document.getElementById('check-status').className = 'status-msg error';
-      document.getElementById('check-status').textContent = 'Sila masukkan IC.';
+      document.getElementById('check-status').textContent = 'Sila masukkan nama.';
       return;
     }
 
@@ -1269,6 +1271,36 @@ fetchResults = async function() {
 };
 
 // =============================================
+// FORM RESET
+// =============================================
+function resetK1Form() {
+  const numQ = K1_ANSWERS.length || 40;
+  k1Answers = new Array(numQ).fill(null);
+  document.getElementById('ic-k1').value = '';
+  document.getElementById('k1-count').textContent = '0';
+  document.getElementById('k1-status').className = 'status-msg';
+  document.getElementById('k1-status').textContent = '';
+  document.getElementById('btn-submit-k1').disabled = false;
+  document.getElementById('btn-submit-k1').innerHTML = 'Hantar Jawapan';
+  // Clear all selected buttons
+  document.querySelectorAll('#mcq-grid .mcq-options button').forEach(b => b.classList.remove('selected'));
+}
+
+function resetK2Form() {
+  document.getElementById('ic-k2').value = '';
+  document.getElementById('k2-status').className = 'status-msg';
+  document.getElementById('k2-status').textContent = '';
+  document.getElementById('btn-submit-k2').disabled = false;
+  document.getElementById('btn-submit-k2').innerHTML = 'Hantar Markah';
+  k2Marks = {};
+  // Clear all mark inputs
+  K2_STRUCTURE.forEach(q => {
+    const input = document.getElementById(`k2-q${q.soalan}`);
+    if (input) input.value = '';
+  });
+}
+
+// =============================================
 // INIT
 // =============================================
 // Build with defaults first, then loadConfig will rebuild with live data
@@ -1280,6 +1312,9 @@ buildK2Form();
 
 if (!isDemoMode()) {
   loadConfig();
+  // Hide setup banner since URL is configured
+  const banner = document.getElementById('setup-banner');
+  if (banner) banner.style.display = 'none';
 } else {
   console.log('Running in DEMO mode — configure APPS_SCRIPT_URL for production.');
 }
