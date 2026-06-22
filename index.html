@@ -1,242 +1,1460 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Rekod Permohonan Kenderaan Kerajaan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        flatBlack: '#1A1A1A',
-                        flatBlue: '#2563EB',
-                        flatGray: '#F4F4F5'
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
-</head>
-<body class="bg-white text-flatBlack min-h-screen flex flex-col">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisis Kimia SPM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0f14;
+  --surface: #151921;
+  --surface2: #1c2230;
+  --border: #2a3040;
+  --text: #e8ecf4;
+  --text2: #8892a8;
+  --accent: #4fd1c5;
+  --accent2: #38b2ac;
+  --accent-glow: rgba(79,209,197,0.15);
+  --warning: #f6ad55;
+  --danger: #fc8181;
+  --success: #68d391;
+  --purple: #b794f4;
+  --blue: #63b3ed;
+  --radius: 12px;
+}
 
-    <div class="bg-flatBlack text-white px-4 py-2 text-xs flex justify-between items-center border-b border-gray-800">
-        <span class="font-mono text-gray-400">DEMO ROLE SWITCHER:</span>
-        <div class="flex gap-2">
-            <button onclick="switchRole('officer')" id="btn-officer" class="px-3 py-1 rounded bg-flatBlue text-white font-medium">1. Pegawai (Apply)</button>
-            <button onclick="switchRole('cc')" id="btn-cc" class="px-3 py-1 rounded bg-gray-700 text-gray-300 hover:text-white font-medium">2. Ketua Kerani (Review)</button>
-            <button onclick="switchRole('kj')" id="btn-kj" class="px-3 py-1 rounded bg-gray-700 text-gray-300 hover:text-white font-medium">3. Ketua Jabatan (Verify)</button>
-        </div>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === GRID BACKGROUND === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(79,209,197,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,209,197,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+}
+
+/* === GLOW ORB === */
+.glow-orb {
+  position: fixed;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79,209,197,0.08), transparent 70%);
+  top: -200px; right: -200px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* === HEADER === */
+.header {
+  text-align: center;
+  padding: 28px 20px 16px;
+}
+
+.header-badge {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  background: var(--accent-glow);
+}
+
+.header h1 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--text), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header p {
+  color: var(--text2);
+  font-size: 0.85rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* === VIEWS === */
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === CARDS === */
+.paper-select {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.paper-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.paper-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-glow), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.paper-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(79,209,197,0.1);
+}
+
+.paper-card:hover::before { opacity: 1; }
+
+.paper-card .icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.paper-card h3 {
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.paper-card p {
+  color: var(--text2);
+  font-size: 0.75rem;
+  position: relative;
+}
+
+/* === IC INPUT === */
+.ic-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.ic-section label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.ic-section .hint {
+  color: var(--text2);
+  font-size: 0.78rem;
+  margin-bottom: 12px;
+}
+
+input[type="text"], select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* === MCQ GRID === */
+.mcq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.mcq-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mcq-item .q-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text2);
+  min-width: 24px;
+}
+
+.mcq-options {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.mcq-options button {
+  flex: 1;
+  padding: 5px 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mcq-options button:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.mcq-options button.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+/* === K2 FORM === */
+.k2-sections {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.k2-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.k2-row .q-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.k2-row .topic {
+  font-size: 0.85rem;
+  color: var(--text2);
+}
+
+.k2-row .mark-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.k2-row input[type="number"] {
+  width: 60px;
+  padding: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.95rem;
+  text-align: center;
+  outline: none;
+}
+
+.k2-row input[type="number"]:focus {
+  border-color: var(--accent);
+}
+
+.k2-row .max-mark {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
+.bahagian-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--purple);
+  padding: 12px 0 4px;
+}
+
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.btn-primary:hover {
+  background: var(--accent2);
+  box-shadow: 0 4px 20px rgba(79,209,197,0.25);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+  border-color: var(--text2);
+  color: var(--text);
+}
+
+.btn-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* === RESULTS === */
+.score-hero {
+  text-align: center;
+  padding: 28px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center top, var(--accent-glow), transparent 60%);
+}
+
+.score-big {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  color: var(--accent);
+  position: relative;
+}
+
+.score-big .pct { font-size: 0.4em; color: var(--text2); }
+
+.grade-badge {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 8px 24px;
+  border-radius: 8px;
+  margin-top: 12px;
+  position: relative;
+}
+
+.grade-A { background: rgba(104,211,145,0.15); color: var(--success); border: 1px solid var(--success); }
+.grade-B { background: rgba(99,179,237,0.15); color: var(--blue); border: 1px solid var(--blue); }
+.grade-C { background: rgba(183,148,244,0.15); color: var(--purple); border: 1px solid var(--purple); }
+.grade-D { background: rgba(246,173,85,0.15); color: var(--warning); border: 1px solid var(--warning); }
+.grade-F { background: rgba(252,129,129,0.15); color: var(--danger); border: 1px solid var(--danger); }
+
+/* === ANALYTICS CARDS === */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+@media (max-width: 600px) {
+  .analytics-grid { grid-template-columns: 1fr; }
+  .paper-select { grid-template-columns: 1fr; }
+}
+
+.analytics-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.analytics-card h4 {
+  font-size: 0.78rem;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 16px;
+}
+
+/* === DIFFICULTY BAR === */
+.diff-item {
+  margin-bottom: 12px;
+}
+
+.diff-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.diff-label span:first-child { color: var(--text); }
+.diff-label span:last-child { font-family: 'Space Mono', monospace; color: var(--text2); font-size: 0.75rem; }
+
+.diff-bar {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.diff-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+}
+
+.diff-easy { background: var(--success); }
+.diff-medium { background: var(--warning); }
+.diff-hard { background: var(--danger); }
+
+/* === TOPIC TABLE === */
+.topic-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.topic-table th {
+  text-align: left;
+  padding: 8px;
+  color: var(--text2);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+}
+
+.topic-table td {
+  padding: 8px;
+  border-bottom: 1px solid rgba(42,48,64,0.5);
+}
+
+.topic-table .perf-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+/* === STATUS === */
+.status-msg {
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin: 16px 0;
+  display: none;
+}
+
+.status-msg.error {
+  display: block;
+  background: rgba(252,129,129,0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.status-msg.success {
+  display: block;
+  background: rgba(104,211,145,0.1);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.status-msg.info {
+  display: block;
+  background: rgba(99,179,237,0.1);
+  border: 1px solid var(--blue);
+  color: var(--blue);
+}
+
+/* === LOADING === */
+.spinner {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === CHECK RESULTS LINK === */
+.check-link {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.check-link a {
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+  cursor: pointer;
+}
+
+/* === FULL WIDTH CARD === */
+.full-card {
+  grid-column: 1 / -1;
+}
+
+/* === SETUP BANNER === */
+.setup-banner {
+  background: linear-gradient(135deg, rgba(246,173,85,0.1), rgba(252,129,129,0.05));
+  border: 1px solid var(--warning);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 24px 0;
+}
+
+.setup-banner h3 {
+  color: var(--warning);
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.setup-banner p, .setup-banner li {
+  color: var(--text2);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.setup-banner code {
+  background: var(--surface2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.setup-banner ol {
+  padding-left: 20px;
+  margin-top: 8px;
+}
+
+.progress-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
+/* === FOOTER === */
+.footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--text2);
+  font-size: 0.7rem;
+  font-family: 'Space Mono', monospace;
+}
+</style>
+<style>
+/* === THEME TOGGLE === */
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: 'Space Mono', monospace;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+/* === LIGHT THEME === */
+body.light {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --surface2: #f0f0ea;
+  --border: #ddd8d0;
+  --text: #1a1a1a;
+  --text2: #666;
+  --accent-glow: rgba(79,209,197,0.1);
+}
+body.light::before {
+  background:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+}
+body.light .glow-orb { opacity: 0.3; }
+
+/* === QUICK FILL === */
+.quick-fill {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.quick-fill span {
+  font-size: 0.75rem;
+  color: var(--text2);
+  margin-right: 4px;
+}
+.quick-fill button {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.75rem;
+  font-family: 'Space Mono', monospace;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.quick-fill button:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+</style>
+</head>
+<body>
+<div class="glow-orb"></div>
+<button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
+<div class="container">
+
+  <!-- === HEADER === -->
+  <div class="header">
+    <div class="header-badge">Analisis Peperiksaan</div>
+    <h1>Kimia SPM</h1>
+    <p>Masukkan jawapan anda, dapatkan analisis prestasi dan kesukaran item serta-merta.</p>
+  </div>
+
+  <!-- ============ VIEW: LANDING ============ -->
+  <div id="view-landing" class="view active">
+    <div class="paper-select">
+      <div class="paper-card" onclick="showView('view-k1')">
+        <div class="icon">📝</div>
+        <h3>Kertas 1</h3>
+        <p>40 soalan objektif (MCQ)<br>Pilih A / B / C / D</p>
+      </div>
+      <div class="paper-card" onclick="showView('view-k2')">
+        <div class="icon">📐</div>
+        <h3>Kertas 2</h3>
+        <p>11 soalan subjektif<br>Masukkan markah per soalan</p>
+      </div>
     </div>
 
-    <header class="border-b border-gray-200 bg-white sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded bg-flatBlue flex items-center justify-center text-white font-bold text-lg">K</div>
-                <div>
-                    <h1 class="text-sm font-bold uppercase tracking-wider leading-none">e-Kenderaan</h1>
-                    <p class="text-[11px] text-gray-500 hidden sm:block">Sistem Permohonan Kenderaan Kerajaan</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <span class="text-xs bg-gray-100 text-flatBlack px-2.5 py-1 rounded-full font-medium id-badge">Mod: Pegawai Pemohon</span>
-                <div class="w-8 h-8 rounded-full bg-flatGray border border-gray-300 flex items-center justify-center text-xs font-semibold">User</div>
-            </div>
-        </div>
-    </header>
+    <div class="check-link">
+      <a onclick="showView('view-check')">Sudah hantar? → Semak keputusan saya</a>
+    </div>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <div id="view-officer" class="role-view max-w-2xl mx-auto">
-            <div class="mb-6">
-                <h2 class="text-xl font-bold tracking-tight text-flatBlack">Borang Permohonan Baru</h2>
-                <p class="text-sm text-gray-500">Sila isi maklumat perjalanan tugasan rasmi dengan lengkap.</p>
-            </div>
+    <div class="setup-banner" id="setup-banner">
+      <h3>⚠ Persediaan Guru (Setup)</h3>
+      <p>Untuk sistem ini berfungsi, anda perlu menyediakan Google Apps Script sebagai backend API. Lihat fail <code>apps-script.js</code> yang disertakan.</p>
+      <ol>
+        <li>Buka Google Sheet anda → Extensions → Apps Script</li>
+        <li>Tampal kod dari <code>apps-script.js</code></li>
+        <li>Deploy sebagai Web App (Execute as: Me, Access: Anyone)</li>
+        <li>Salin URL web app dan ganti <code>APPS_SCRIPT_URL</code> di bawah</li>
+      </ol>
+    </div>
+  </div>
 
-            <form class="space-y-5" onsubmit="event.preventDefault(); alert('Permohonan berjaya dihantar ke Ketua Kerani (CC).');">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Nama Pegawai</label>
-                        <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-flatBlue text-sm" placeholder="Nama penuh pemohon">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">No. Telefon</label>
-                        <input type="tel" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-flatBlue text-sm" placeholder="Contoh: 013829XXXX">
-                    </div>
-                </div>
+  <!-- ============ VIEW: KERTAS 1 ============ -->
+  <div id="view-k1" class="view">
+    <h2 style="margin-bottom:4px;">Kertas 1 — Soalan Objektif</h2>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:16px;">Pilih jawapan untuk setiap 40 soalan.</p>
 
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Destinasi / Lokasi</label>
-                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-flatBlue text-sm" placeholder="Tempat dituju">
-                </div>
+    <div class="ic-section">
+      <label>Nama Penuh</label>
+      <div class="hint">Masukkan nama penuh anda seperti dalam senarai kelas</div>
+      <input type="text" id="ic-k1" placeholder="cth: ALI BIN ABU" maxlength="100">
+    </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Tarikh & Masa Mula</label>
-                        <input type="datetime-local" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-flatBlue text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Tarikh & Masa Tamat</label>
-                        <input type="datetime-local" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-flatBlue text-sm">
-                    </div>
-                </div>
+    <div class="progress-count">Dijawab: <span id="k1-count">0</span> / <span id="k1-total">40</span></div>
+    <div class="quick-fill">
+      <span>Isi semua:</span>
+      <button onclick="fillAll('A')">A</button>
+      <button onclick="fillAll('B')">B</button>
+      <button onclick="fillAll('C')">C</button>
+      <button onclick="fillAll('D')">D</button>
+      <button onclick="fillRandom()" style="margin-left:8px;">Rawak</button>
+    </div>
+    <div class="mcq-grid" id="mcq-grid"></div>
 
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Tujuan / Alasan Tugas Rasmi</label>
-                    <textarea rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-flatBlue text-sm" placeholder="Nyatakan sebab permohonan..."></textarea>
-                </div>
+    <div id="k1-status" class="status-msg"></div>
 
-                <div class="pt-2">
-                    <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-flatBlue text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors">Hantar Permohonan</button>
-                </div>
-            </form>
-        </div>
+    <div class="btn-bar">
+      <button class="btn btn-outline" onclick="showView('view-landing')">← Kembali</button>
+      <button class="btn btn-primary" id="btn-submit-k1" onclick="submitK1()">Hantar Jawapan</button>
+    </div>
+  </div>
 
+  <!-- ============ VIEW: KERTAS 2 ============ -->
+  <div id="view-k2" class="view">
+    <h2 style="margin-bottom:4px;">Kertas 2 — Soalan Subjektif</h2>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:16px;">Masukkan markah yang diperoleh bagi setiap soalan.</p>
 
-        <div id="view-cc" class="role-view hidden">
-            <div class="mb-6">
-                <h2 class="text-xl font-bold tracking-tight text-flatBlack">Senarai Menunggu Semakan (Ketua Kerani)</h2>
-                <p class="text-sm text-gray-500">Sila semak butiran logistik dan tetapkan pemandu sebelum kelulusan akhir oleh KJ.</p>
-            </div>
+    <div class="ic-section">
+      <label>Nama Penuh</label>
+      <div class="hint">Gunakan nama yang sama seperti Kertas 1</div>
+      <input type="text" id="ic-k2" placeholder="cth: ALI BIN ABU" maxlength="100">
+    </div>
 
-            <div class="border border-gray-200 rounded overflow-hidden shadow-sm bg-white">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-flatBlack text-white text-xs uppercase tracking-wider">
-                                <th class="py-3 px-4">Pemohon & Destinasi</th>
-                                <th class="py-3 px-4 hidden sm:table-cell">Tarikh & Alasan</th>
-                                <th class="py-3 px-4">Tindakan CC</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 text-sm">
-                            <tr class="align-top">
-                                <td class="py-4 px-4">
-                                    <div class="font-semibold text-flatBlack">Ahmad Bin Razali</div>
-                                    <div class="text-xs text-gray-500">Tel: 019-8765432</div>
-                                    <div class="mt-1 inline-flex items-center text-xs font-medium text-flatBlue bg-blue-50 px-2 py-0.5 rounded">
-                                        Destinasi: PPD Keningau
-                                    </div>
-                                </td>
-                                <td class="py-4 px-4 hidden sm:table-cell">
-                                    <div class="text-xs font-medium text-gray-700">Mula: 22/06/2026 (08:00 AM)</div>
-                                    <div class="text-xs font-medium text-gray-700">Tamat: 22/06/2026 (05:00 PM)</div>
-                                    <p class="text-xs text-gray-500 mt-1 max-w-xs italic">"Menghadiri Bengkel Digitalisasi ICT Sekolah Negeri Sabah."</p>
-                                </td>
-                                <td class="py-4 px-4">
-                                    <form class="space-y-2" onsubmit="event.preventDefault(); alert('Permohonan disemak dan dihantar ke KJ.');">
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-0.5">Tugaskan Pumas/Pemandu</label>
-                                            <select required class="w-full text-xs px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:border-flatBlue bg-white">
-                                                <option value="">-- Pilih Pemandu --</option>
-                                                <option value="Encik Sukiman">Encik Sukiman (Proton Exora)</option>
-                                                <option value="Encik Zainal">Encik Zainal (Toyota Fortuner)</option>
-                                            </select>
-                                        </div>
-                                        <button type="submit" class="w-full text-center bg-flatBlue text-white text-xs font-semibold py-1.5 px-3 rounded hover:bg-blue-700 transition-colors">
-                                            Sahkan & Hantar ke KJ
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <div class="k2-sections" id="k2-form"></div>
 
+    <div id="k2-status" class="status-msg"></div>
 
-        <div id="view-kj" class="role-view hidden max-w-4xl mx-auto">
-            <div class="mb-6">
-                <h2 class="text-xl font-bold tracking-tight text-flatBlack">Kelulusan Akhir (Ketua Jabatan)</h2>
-                <p class="text-sm text-gray-500">Pengesahan muktamad permohonan kenderaan kerajaan yang telah disemak oleh CC.</p>
-            </div>
+    <div class="btn-bar">
+      <button class="btn btn-outline" onclick="showView('view-landing')">← Kembali</button>
+      <button class="btn btn-primary" id="btn-submit-k2" onclick="submitK2()">Hantar Markah</button>
+    </div>
+  </div>
 
-            <div class="border-2 border-flatBlack rounded p-5 bg-white space-y-4 shadow-sm">
-                <div class="flex justify-between items-start border-b border-gray-200 pb-3">
-                    <div>
-                        <span class="text-[10px] uppercase font-bold tracking-widest text-gray-400">ID Permohonan: #9842</span>
-                        <h3 class="text-base font-bold text-flatBlack">Permohonan Kenderaan: Ahmad Bin Razali</h3>
-                    </div>
-                    <span class="text-xs bg-yellow-100 text-yellow-800 font-medium px-2.5 py-0.5 rounded-full border border-yellow-200">Menunggu Kelulusan KJ</span>
-                </div>
+  <!-- ============ VIEW: CHECK RESULTS ============ -->
+  <div id="view-check" class="view">
+    <h2 style="margin-bottom:4px;">Semak Keputusan</h2>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:16px;">Masukkan nama anda untuk melihat analisis.</p>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs bg-flatGray p-3 rounded">
-                    <div>
-                        <span class="block text-gray-500 font-medium">Destinasi</span>
-                        <span class="font-semibold text-flatBlack">PPD Keningau</span>
-                    </div>
-                    <div>
-                        <span class="block text-gray-500 font-medium">Tempoh Masa</span>
-                        <span class="font-semibold text-flatBlack">22 Jun 2026 (8am - 5pm)</span>
-                    </div>
-                    <div>
-                        <span class="block text-gray-500 font-medium">Pemandu Ditugaskan (Oleh CC)</span>
-                        <span class="font-semibold text-flatBlue">Encik Sukiman (Proton Exora)</span>
-                    </div>
-                </div>
+    <div class="ic-section">
+      <label>Nama Penuh</label>
+      <input type="text" id="ic-check" placeholder="cth: ALI BIN ABU" maxlength="100">
+      <button class="btn btn-primary" style="margin-top:12px;width:100%;" onclick="fetchResults()">Cari Keputusan</button>
+    </div>
 
-                <div class="text-xs text-gray-700">
-                    <span class="block font-bold text-gray-600 uppercase mb-0.5">Alasan Perjalanan:</span>
-                    <p class="italic bg-white p-2 border border-gray-100 rounded">"Menghadiri Bengkel Digitalisasi ICT Sekolah Negeri Sabah."</p>
-                </div>
+    <div id="check-status" class="status-msg"></div>
 
-                <div class="flex flex-col sm:flex-row gap-2 pt-2 justify-end">
-                    <button onclick="triggerApproval()" class="order-1 sm:order-2 bg-flatBlue text-white text-xs font-bold px-5 py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Luluskan & Hantar Memo Emel
-                    </button>
-                    <button onclick="alert('Permohonan ditolak.')" class="order-2 sm:order-1 bg-white border border-gray-300 text-red-600 hover:bg-red-50 text-xs font-medium px-4 py-2 rounded transition-colors">
-                        Tolak
-                    </button>
-                </div>
-            </div>
-        </div>
+    <button class="btn btn-outline" onclick="showView('view-landing')" style="margin-top:12px;">← Kembali</button>
+  </div>
 
-    </main>
+  <!-- ============ VIEW: RESULTS ============ -->
+  <div id="view-results" class="view">
+    <div id="results-content"></div>
+    <div class="btn-bar" style="margin-top:16px;">
+      <button class="btn btn-outline" onclick="showView('view-landing')">← Kembali ke Menu Utama</button>
+    </div>
+  </div>
 
-    <footer class="border-t border-gray-200 bg-flatGray py-4 text-center text-xs text-gray-500 mt-12">
-        &copy; 2026 Sistem e-Kenderaan Kerajaan. Rekaan Minimalis & Responsif.
-    </footer>
+  <div class="footer">Kimia SPM Analisis · Dibina untuk guru & pelajar<br><a href="admin.html" style="color:var(--accent);text-decoration:none;font-size:0.75rem;border-bottom:1px dashed var(--accent);">Panel Guru →</a></div>
+</div>
 
-    <script>
-        function switchRole(role) {
-            // Hide all views
-            document.querySelectorAll('.role-view').forEach(el => el.classList.add('hidden'));
-            // Reset button styles
-            document.querySelectorAll('[id^="btn-"]').forEach(el => {
-                el.classList.remove('bg-flatBlue', 'text-white');
-                el.classList.add('bg-gray-700', 'text-gray-300');
-            });
+<script>
+// =============================================
+// CONFIGURATION — CHANGE THIS URL
+// =============================================
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
-            const badge = document.querySelector('.id-badge');
+// =============================================
+// DATA
+// =============================================
+// These get loaded from Google Sheet via loadConfig()
+let K1_ANSWERS = [];
+let K2_STRUCTURE = [];
+let K2_TOTAL = 0;
+let configLoaded = false;
 
-            // Toggle target view and active button style
-            if (role === 'officer') {
-                document.getElementById('view-officer').classList.remove('hidden');
-                document.getElementById('btn-officer').classList.add('bg-flatBlue', 'text-white');
-                badge.innerText = "Mod: Pegawai Pemohon";
-            } else if (role === 'cc') {
-                document.getElementById('view-cc').classList.remove('hidden');
-                document.getElementById('btn-cc').classList.add('bg-flatBlue', 'text-white');
-                badge.innerText = "Mod: Ketua Kerani (CC)";
-            } else if (role === 'kj') {
-                document.getElementById('view-kj').classList.remove('hidden');
-                document.getElementById('btn-kj').classList.add('bg-flatBlue', 'text-white');
-                badge.innerText = "Mod: Ketua Jabatan (KJ)";
-            }
-        }
+// K2 total = SUM(Bahagian A) + MAX(Bahagian B) + SUM(Bahagian C)
+// Because only the best Bahagian B answer counts
+function calcK2Total(structure) {
+  const a = structure.filter(q => q.bahagian === 'A').reduce((s,q) => s + q.max, 0);
+  const bMarks = structure.filter(q => q.bahagian === 'B').map(q => q.max);
+  const bMax = bMarks.length > 0 ? Math.max(...bMarks) : 0;
+  const c = structure.filter(q => q.bahagian === 'C').reduce((s,q) => s + q.max, 0);
+  return a + bMax + c;
+}
 
-        function triggerApproval() {
-            alert("Status Ditukar Ke 'LULUS'. Memo kelulusan rasmi (PDF/HTML layout) berjaya dijana dan dihantar secara automatik ke emel Pegawai, Pemandu, dan CC.");
-        }
-    </script>
+// Default fallbacks (used in demo mode or if config fetch fails)
+const DEFAULT_K1 = ['C','D','B','C','A','A','D','A','B','B','A','C','D','A','A','A','C','D','C','D','A','D','B','D','B','D','C','C','C','C','A','B','D','B','D','C','A','B','D','C'];
+const DEFAULT_K2 = [
+  { bahagian:'A', soalan:1, topic:'Seramik dan Kaca', max:5 },
+  { bahagian:'A', soalan:2, topic:'Pemanasan Zarah', max:5 },
+  { bahagian:'A', soalan:3, topic:'Isotop', max:6 },
+  { bahagian:'A', soalan:4, topic:'Formula Molekul dan Imperik', max:7 },
+  { bahagian:'A', soalan:5, topic:'Jadual Berkala Unsur (K1)', max:8 },
+  { bahagian:'A', soalan:6, topic:'Asid dan Garam', max:9 },
+  { bahagian:'A', soalan:7, topic:'Haba Tindakbalas', max:10 },
+  { bahagian:'A', soalan:8, topic:'Jadual Berkala Unsur (Kala)', max:10 },
+  { bahagian:'B', soalan:9, topic:'Kadar Tindakbalas', max:20 },
+  { bahagian:'B', soalan:10, topic:'Ikatan Kimia', max:20 },
+  { bahagian:'C', soalan:11, topic:'Haba Tindakbalas', max:20 },
+];
+
+async function loadConfig() {
+  try {
+    const resp = await fetch(`${APPS_SCRIPT_URL}?action=getConfig`);
+    const data = await resp.json();
+
+    if (data.k1Answers && data.k1Answers.length > 0) {
+      K1_ANSWERS = data.k1Answers;
+    } else {
+      K1_ANSWERS = DEFAULT_K1;
+    }
+
+    if (data.k2Structure && data.k2Structure.length > 0) {
+      K2_STRUCTURE = data.k2Structure;
+    } else {
+      K2_STRUCTURE = DEFAULT_K2;
+    }
+
+    K2_TOTAL = calcK2Total(K2_STRUCTURE);
+    configLoaded = true;
+  } catch (err) {
+    console.warn('Could not load config, using defaults.');
+    K1_ANSWERS = DEFAULT_K1;
+    K2_STRUCTURE = DEFAULT_K2;
+    K2_TOTAL = calcK2Total(K2_STRUCTURE);
+  }
+
+  // Rebuild forms with loaded config
+  buildK1Grid();
+  buildK2Form();
+}
+
+// Student answers state
+let k1Answers = new Array(40).fill(null);
+let k2Marks = {};
+
+// =============================================
+// VIEW SWITCHING
+// =============================================
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// =============================================
+// BUILD K1 MCQ GRID
+// =============================================
+function buildK1Grid() {
+  const grid = document.getElementById('mcq-grid');
+  grid.innerHTML = '';
+  const numQ = K1_ANSWERS.length || 40;
+  k1Answers = new Array(numQ).fill(null);
+  document.getElementById('k1-count').textContent = '0';
+  document.getElementById('k1-total').textContent = numQ;
+
+  for (let i = 0; i < numQ; i++) {
+    const item = document.createElement('div');
+    item.className = 'mcq-item';
+    item.innerHTML = `
+      <span class="q-num">${i+1}.</span>
+      <div class="mcq-options">
+        ${['A','B','C','D'].map(opt => `<button data-q="${i}" data-opt="${opt}" onclick="selectMCQ(this)">${opt}</button>`).join('')}
+      </div>
+    `;
+    grid.appendChild(item);
+  }
+}
+
+function selectMCQ(btn) {
+  const q = parseInt(btn.dataset.q);
+  const opt = btn.dataset.opt;
+  k1Answers[q] = opt;
+
+  // Update UI
+  btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  // Update count
+  const count = k1Answers.filter(a => a !== null).length;
+  document.getElementById('k1-count').textContent = count;
+}
+
+// =============================================
+// BUILD K2 FORM
+// =============================================
+function buildK2Form() {
+  const form = document.getElementById('k2-form');
+  form.innerHTML = ''; // Clear existing content to prevent duplicates
+  let currentBahagian = '';
+
+  K2_STRUCTURE.forEach(q => {
+    if (q.bahagian !== currentBahagian) {
+      currentBahagian = q.bahagian;
+      const label = document.createElement('div');
+      label.className = 'bahagian-label';
+      label.textContent = `Bahagian ${currentBahagian}`;
+      form.appendChild(label);
+    }
+
+    const row = document.createElement('div');
+    row.className = 'k2-row';
+    row.innerHTML = `
+      <span class="q-num">S${q.soalan}</span>
+      <span class="topic">${q.topic}</span>
+      <div class="mark-input">
+        <input type="number" id="k2-q${q.soalan}" min="0" max="${q.max}" placeholder="0"
+          oninput="validateMark(this, ${q.max}, ${q.soalan})">
+        <span class="max-mark">/ ${q.max}</span>
+      </div>
+    `;
+    form.appendChild(row);
+  });
+}
+
+function validateMark(input, max, soalan) {
+  let v = parseInt(input.value);
+  if (isNaN(v) || v < 0) v = 0;
+  if (v > max) { v = max; input.value = max; }
+  k2Marks[soalan] = v;
+}
+
+// =============================================
+// SUBMIT K1
+// =============================================
+async function submitK1() {
+  const ic = document.getElementById('ic-k1').value.trim().toUpperCase();
+  const status = document.getElementById('k1-status');
+  const btn = document.getElementById('btn-submit-k1');
+
+  if (!ic || ic.length < 3) {
+    status.className = 'status-msg error';
+    status.textContent = 'Sila masukkan nama penuh anda.';
+    return;
+  }
+
+  const unanswered = k1Answers.filter(a => a === null).length;
+  if (unanswered > 0) {
+    status.className = 'status-msg error';
+    status.textContent = `Masih ada ${unanswered} soalan belum dijawab.`;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Menghantar...';
+  status.className = 'status-msg info';
+  status.textContent = 'Menghantar jawapan...';
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'submitK1',
+        ic: ic,
+        answers: k1Answers
+      })
+    });
+
+    // no-cors means opaque response — we assume success
+    status.className = 'status-msg success';
+    status.textContent = '✓ Jawapan berjaya dihantar! Anda boleh semak keputusan sekarang.';
+    btn.innerHTML = '✓ Dihantar';
+
+    // Auto show results after short delay
+    setTimeout(() => {
+      document.getElementById('ic-check').value = ic;
+      resetK1Form();
+      fetchResults();
+    }, 1500);
+
+  } catch (err) {
+    status.className = 'status-msg error';
+    status.textContent = 'Ralat: ' + err.message;
+    btn.disabled = false;
+    btn.innerHTML = 'Hantar Jawapan';
+  }
+}
+
+// =============================================
+// SUBMIT K2
+// =============================================
+async function submitK2() {
+  const ic = document.getElementById('ic-k2').value.trim().toUpperCase();
+  const status = document.getElementById('k2-status');
+  const btn = document.getElementById('btn-submit-k2');
+
+  if (!ic || ic.length < 3) {
+    status.className = 'status-msg error';
+    status.textContent = 'Sila masukkan nama penuh anda.';
+    return;
+  }
+
+  // Collect marks
+  const marks = K2_STRUCTURE.map(q => {
+    const input = document.getElementById(`k2-q${q.soalan}`);
+    const v = parseInt(input.value);
+    return isNaN(v) ? 0 : v;
+  });
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Menghantar...';
+  status.className = 'status-msg info';
+  status.textContent = 'Menghantar markah...';
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'submitK2',
+        ic: ic,
+        marks: marks
+      })
+    });
+
+    status.className = 'status-msg success';
+    status.textContent = '✓ Markah berjaya dihantar!';
+    btn.innerHTML = '✓ Dihantar';
+
+    setTimeout(() => {
+      document.getElementById('ic-check').value = ic;
+      resetK2Form();
+      fetchResults();
+    }, 1500);
+
+  } catch (err) {
+    status.className = 'status-msg error';
+    status.textContent = 'Ralat: ' + err.message;
+    btn.disabled = false;
+    btn.innerHTML = 'Hantar Markah';
+  }
+}
+
+// =============================================
+// FETCH RESULTS
+// =============================================
+async function fetchResults() {
+  const ic = document.getElementById('ic-check').value.trim().toUpperCase();
+  const status = document.getElementById('check-status');
+
+  if (!ic || ic.length < 3) {
+    status.className = 'status-msg error';
+    status.textContent = 'Sila masukkan nama penuh anda.';
+    return;
+  }
+
+  status.className = 'status-msg info';
+  status.textContent = 'Mencari keputusan...';
+
+  try {
+    const resp = await fetch(`${APPS_SCRIPT_URL}?action=getResults&ic=${encodeURIComponent(ic)}`);
+    const data = await resp.json();
+
+    if (data.error) {
+      status.className = 'status-msg error';
+      status.textContent = data.error;
+      return;
+    }
+
+    renderResults(data);
+    showView('view-results');
+  } catch (err) {
+    status.className = 'status-msg error';
+    status.textContent = 'Ralat mengambil data. Pastikan Apps Script URL telah dikonfigurasi.';
+  }
+}
+
+// =============================================
+// RENDER RESULTS
+// =============================================
+function renderResults(data) {
+  const container = document.getElementById('results-content');
+
+  const hasK1 = data.k1 && data.k1.score !== undefined;
+  const hasK2 = data.k2 && data.k2.total !== undefined;
+
+  // Calculate overall
+  let overallPct = 0;
+  let overallGrade = '-';
+
+  if (hasK1 && hasK2) {
+    const k1Total = data.k1.details ? data.k1.details.length : K1_ANSWERS.length;
+    overallPct = Math.round(((data.k1.score / k1Total * 100) + (data.k2.total / K2_TOTAL * 100)) / 2);
+  } else if (hasK1) {
+    const k1Total = data.k1.details ? data.k1.details.length : K1_ANSWERS.length;
+    overallPct = Math.round(data.k1.score / k1Total * 100);
+  } else if (hasK2) {
+    overallPct = Math.round(data.k2.total / K2_TOTAL * 100);
+  }
+
+  overallGrade = getGrade(overallPct);
+
+  let html = '';
+
+  // --- SCORE HERO ---
+  html += `
+    <div class="score-hero">
+      <div style="position:relative;">
+        <div style="color:var(--text2);font-size:0.85rem;margin-bottom:8px;">Keputusan Keseluruhan</div>
+        <div class="score-big">${overallPct}<span class="pct">%</span></div>
+        <div class="grade-badge grade-${overallGrade[0]}">${overallGrade}</div>
+      </div>
+    </div>
+  `;
+
+  // --- SUMMARY CARDS ---
+  html += '<div class="analytics-grid">';
+
+  if (hasK1) {
+    const k1Total = data.k1.details ? data.k1.details.length : K1_ANSWERS.length;
+    html += `
+      <div class="analytics-card">
+        <h4>Kertas 1 — Objektif</h4>
+        <div style="font-family:'Space Mono';font-size:1.4rem;color:var(--accent);font-weight:700;">${data.k1.score} / ${k1Total}</div>
+        <div style="color:var(--text2);font-size:0.8rem;margin-top:4px;">${Math.round(data.k1.score/k1Total*100)}% betul</div>
+      </div>
+    `;
+  }
+
+  if (hasK2) {
+    html += `
+      <div class="analytics-card">
+        <h4>Kertas 2 — Subjektif</h4>
+        <div style="font-family:'Space Mono';font-size:1.4rem;color:var(--purple);font-weight:700;">${data.k2.total} / ${K2_TOTAL}</div>
+        <div style="color:var(--text2);font-size:0.8rem;margin-top:4px;">${Math.round(data.k2.total/K2_TOTAL*100)}%</div>
+      </div>
+    `;
+  }
+
+  html += '</div>';
+
+  // --- ITEM DIFFICULTY (CLASS DATA) ---
+  if (data.classStats) {
+    html += '<div class="analytics-grid">';
+
+    // K1 item difficulty
+    if (data.classStats.k1Difficulty) {
+      html += `<div class="analytics-card full-card">
+        <h4>Indeks Kesukaran Item — Kertas 1</h4>
+        <div style="color:var(--text2);font-size:0.75rem;margin-bottom:12px;">
+          Peratusan pelajar yang menjawab betul (N = ${data.classStats.totalStudents || '?'})
+        </div>`;
+
+      // Group by difficulty
+      const easy = [], medium = [], hard = [];
+      data.classStats.k1Difficulty.forEach((d, i) => {
+        const item = { q: i+1, pct: Math.round(d * 100) };
+        if (d >= 0.7) easy.push(item);
+        else if (d >= 0.3) medium.push(item);
+        else hard.push(item);
+      });
+
+      if (hard.length > 0) {
+        html += '<div style="margin-bottom:12px;font-size:0.78rem;color:var(--danger);font-weight:600;">Sukar (< 30%)</div>';
+        hard.forEach(item => {
+          html += diffBar(item.q, item.pct, 'hard');
+        });
+      }
+      if (medium.length > 0) {
+        html += '<div style="margin:12px 0 8px;font-size:0.78rem;color:var(--warning);font-weight:600;">Sederhana (30%-70%)</div>';
+        medium.forEach(item => {
+          html += diffBar(item.q, item.pct, 'medium');
+        });
+      }
+      if (easy.length > 0) {
+        html += '<div style="margin:12px 0 8px;font-size:0.78rem;color:var(--success);font-weight:600;">Mudah (> 70%)</div>';
+        easy.forEach(item => {
+          html += diffBar(item.q, item.pct, 'easy');
+        });
+      }
+
+      html += '</div>';
+    }
+
+    // Topic analysis for K2
+    if (data.classStats.k2TopicAvg) {
+      const k2Struct = data.k2Structure || K2_STRUCTURE;
+      html += `<div class="analytics-card full-card">
+        <h4>Analisis Topik — Kertas 2</h4>
+        <table class="topic-table">
+          <tr><th>Soalan</th><th>Topik</th><th>Anda</th><th>Purata Kelas</th><th>Prestasi</th></tr>`;
+
+      k2Struct.forEach((q, i) => {
+        const studentMark = hasK2 ? (data.k2.marks[i] || 0) : '-';
+        const classAvg = data.classStats.k2TopicAvg[i] !== undefined ? data.classStats.k2TopicAvg[i].toFixed(1) : '-';
+        const pct = hasK2 && q.max > 0 ? (data.k2.marks[i] || 0) / q.max : 0;
+        const color = pct >= 0.7 ? 'var(--success)' : pct >= 0.4 ? 'var(--warning)' : 'var(--danger)';
+
+        html += `<tr>
+          <td style="font-family:'Space Mono';color:var(--accent);">S${q.soalan}</td>
+          <td>${q.topic}</td>
+          <td style="font-family:'Space Mono';">${studentMark} / ${q.max}</td>
+          <td style="font-family:'Space Mono';color:var(--text2);">${classAvg}</td>
+          <td><span class="perf-dot" style="background:${color}"></span>${Math.round(pct*100)}%</td>
+        </tr>`;
+      });
+
+      html += '</table></div>';
+    }
+
+    html += '</div>';
+  }
+
+  // --- K1 ANSWER REVIEW ---
+  if (hasK1 && data.k1.details) {
+    html += `<div class="analytics-card" style="margin-top:16px;">
+      <h4>Semakan Jawapan Kertas 1</h4>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;">`;
+
+    data.k1.details.forEach((d, i) => {
+      const correct = d.correct;
+      const bg = correct ? 'rgba(104,211,145,0.1)' : 'rgba(252,129,129,0.1)';
+      const border = correct ? 'var(--success)' : 'var(--danger)';
+      const icon = correct ? '✓' : '✗';
+      html += `<div style="padding:6px 8px;border-radius:6px;background:${bg};border:1px solid ${border};font-size:0.75rem;font-family:'Space Mono';display:flex;justify-content:space-between;">
+        <span>Q${i+1}</span>
+        <span>${icon} ${d.student} ${correct ? '' : '→ '+d.answer}</span>
+      </div>`;
+    });
+
+    html += '</div></div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function diffBar(q, pct, level) {
+  return `<div class="diff-item">
+    <div class="diff-label"><span>Soalan ${q}</span><span>${pct}%</span></div>
+    <div class="diff-bar"><div class="diff-fill diff-${level}" style="width:${pct}%"></div></div>
+  </div>`;
+}
+
+function getGrade(pct) {
+  if (pct >= 90) return 'A+';
+  if (pct >= 80) return 'A';
+  if (pct >= 70) return 'A-';
+  if (pct >= 65) return 'B+';
+  if (pct >= 60) return 'B';
+  if (pct >= 55) return 'C+';
+  if (pct >= 50) return 'C';
+  if (pct >= 45) return 'D';
+  if (pct >= 40) return 'E';
+  return 'G';
+}
+
+// =============================================
+// DEMO MODE (when no Apps Script URL)
+// =============================================
+function isDemoMode() {
+  return APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE' || !APPS_SCRIPT_URL;
+}
+
+// Override fetchResults for demo
+const _origFetch = fetchResults;
+fetchResults = async function() {
+  if (isDemoMode()) {
+    // Generate demo data
+    const ic = document.getElementById('ic-check').value.trim();
+    if (!ic || ic.length < 3) {
+      document.getElementById('check-status').className = 'status-msg error';
+      document.getElementById('check-status').textContent = 'Sila masukkan nama.';
+      return;
+    }
+
+    const demoData = {
+      k1: {
+        score: 32,
+        details: K1_ANSWERS.map((ans, i) => {
+          const choices = ['A','B','C','D'];
+          const studentAns = Math.random() > 0.2 ? ans : choices[Math.floor(Math.random()*4)];
+          return { student: studentAns, answer: ans, correct: studentAns === ans };
+        })
+      },
+      k2: {
+        total: 89,
+        marks: K2_STRUCTURE.map(q => Math.floor(Math.random() * (q.max * 0.4) + q.max * 0.5))
+      },
+      classStats: {
+        totalStudents: 35,
+        k1Difficulty: K1_ANSWERS.map(() => Math.random() * 0.7 + 0.15),
+        k2TopicAvg: K2_STRUCTURE.map(q => q.max * (Math.random() * 0.4 + 0.4))
+      }
+    };
+
+    // Recalculate K1 score from details
+    demoData.k1.score = demoData.k1.details.filter(d => d.correct).length;
+    // Recalculate K2 total
+    demoData.k2.total = demoData.k2.marks.reduce((a,b) => a+b, 0);
+
+    renderResults(demoData);
+    showView('view-results');
+    return;
+  }
+  return _origFetch();
+};
+
+// =============================================
+// QUICK FILL (for testing)
+// =============================================
+function fillAll(opt) {
+  const numQ = K1_ANSWERS.length || 40;
+  k1Answers = new Array(numQ).fill(opt);
+  document.querySelectorAll('#mcq-grid .mcq-options').forEach((group, i) => {
+    group.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('selected', b.dataset.opt === opt);
+    });
+  });
+  document.getElementById('k1-count').textContent = numQ;
+}
+
+function fillRandom() {
+  const opts = ['A','B','C','D'];
+  const numQ = K1_ANSWERS.length || 40;
+  document.querySelectorAll('#mcq-grid .mcq-options').forEach((group, i) => {
+    const pick = opts[Math.floor(Math.random() * 4)];
+    k1Answers[i] = pick;
+    group.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('selected', b.dataset.opt === pick);
+    });
+  });
+  document.getElementById('k1-count').textContent = numQ;
+}
+
+// =============================================
+// THEME TOGGLE
+// =============================================
+function toggleTheme() {
+  const body = document.body;
+  const btn = document.getElementById('theme-btn');
+  body.classList.toggle('light');
+  const isLight = body.classList.contains('light');
+  btn.textContent = isLight ? '☾ Dark' : '☀ Light';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+
+// Restore saved theme
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = '☾ Dark';
+  }
+})();
+
+// =============================================
+// FORM RESET
+// =============================================
+function resetK1Form() {
+  const numQ = K1_ANSWERS.length || 40;
+  k1Answers = new Array(numQ).fill(null);
+  document.getElementById('ic-k1').value = '';
+  document.getElementById('k1-count').textContent = '0';
+  document.getElementById('k1-status').className = 'status-msg';
+  document.getElementById('k1-status').textContent = '';
+  document.getElementById('btn-submit-k1').disabled = false;
+  document.getElementById('btn-submit-k1').innerHTML = 'Hantar Jawapan';
+  // Clear all selected buttons
+  document.querySelectorAll('#mcq-grid .mcq-options button').forEach(b => b.classList.remove('selected'));
+}
+
+function resetK2Form() {
+  document.getElementById('ic-k2').value = '';
+  document.getElementById('k2-status').className = 'status-msg';
+  document.getElementById('k2-status').textContent = '';
+  document.getElementById('btn-submit-k2').disabled = false;
+  document.getElementById('btn-submit-k2').innerHTML = 'Hantar Markah';
+  k2Marks = {};
+  // Clear all mark inputs
+  K2_STRUCTURE.forEach(q => {
+    const input = document.getElementById(`k2-q${q.soalan}`);
+    if (input) input.value = '';
+  });
+}
+
+// =============================================
+// INIT
+// =============================================
+// Build with defaults first, then loadConfig will rebuild with live data
+K1_ANSWERS = DEFAULT_K1;
+K2_STRUCTURE = DEFAULT_K2;
+K2_TOTAL = calcK2Total(K2_STRUCTURE);
+buildK1Grid();
+buildK2Form();
+
+if (!isDemoMode()) {
+  loadConfig();
+  // Hide setup banner since URL is configured
+  const banner = document.getElementById('setup-banner');
+  if (banner) banner.style.display = 'none';
+} else {
+  console.log('Running in DEMO mode — configure APPS_SCRIPT_URL for production.');
+}
+</script>
 </body>
 </html>
